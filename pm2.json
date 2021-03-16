@@ -1,0 +1,8 @@
+{
+    "apps": [{
+        "name": "spikegg_scrape",
+        "script": "main.py",
+        "interpreter": "python3.6",
+        "interpreter_args": "-u"
+    }]
+}
