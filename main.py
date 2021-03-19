@@ -1,10 +1,10 @@
 from bs4 import BeautifulSoup
-from flask import Flask, current_app, jsonify
+from flask import Flask, render_template, current_app, jsonify
 from flask_cors import CORS
 import json
 import requests
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='frontpage')
 CORS(app)
 
 
@@ -41,11 +41,9 @@ def spike():
     return data
 
 
-@app.route("/")
-def home():
-  return jsonify({
-      "hello": "world"
-  })
+@app.route('/')
+def root():
+    return render_template('index.html')
 
 
 @app.route("/latest_news")
