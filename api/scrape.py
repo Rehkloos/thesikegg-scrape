@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
-from .models import Match, Player, Team
+from .models import Match, Player, Team, Article
 
 
 class Spike:
@@ -28,7 +28,7 @@ class Spike:
         ]]
 
     @ staticmethod
-    def get_rankings():
+    def get_rankings() -> dict:
         url = f'{Spike.base_url}/rankings'
         regions = ('na', 'eu', 'kr', 'jp', 'latam')
         ids = (1, 2, 4, 5, 6)
@@ -46,33 +46,18 @@ class Spike:
         }
 
     @ staticmethod
-    def get_news():
-        url = f'{Spike.base_url}'
-        soup = BeautifulSoup(requests.get(url).content, 'html.parser')
-        if soup.find(class_="home-news-area") == None:
-            return None
-        else:
-            spike_element = soup.find(
-                'ul', attrs={"class": "item-list"}).parent.find_all('li', attrs={"class": "item element-trim-button"})
-            spike = []
-            for spikes in spike_element:
-                inner = spikes.find('div', attrs={"class": "inner"})
-                title = inner.find('div', attrs={"class": "news-title"})
-                title = title.text.strip()
-                url = spikes.find('a').attrs['href']
-                url = f"https://www.thespike.gg{url}"
-                date = inner.find('div', attrs={"class": "news-info"})
-                date = date.find(attrs={"class": "date"})
-                date = date.text.strip()
+    def get_news() -> dict:
+        soup = BeautifulSoup(requests.get(
+            Spike.base_url).content, 'html.parser')
 
-                spike.append({
-                    "title": title,
-                    "url": url,
-                    "date": date
-                })
-
-                segments = {"segments": spike}
-
-                data = {"data": segments}
-
-            return data
+        return {time: [news_article.get_dict() for news_article in [
+            Article(article.find('div', {'class': 'news-title'}).text.strip(),
+                    article.find(('div', 'span'), {
+                                 'class': 'date'}).text.strip(),
+                    article.find(('div', 'span'), {
+                        'class': 'comments'}).text.strip(),
+                    article['href']
+                    )
+            for article in map(lambda article_section: article_section.find('a'), time_section.findAll('li'))]]
+            for time_section, time in zip(soup.find('div', {'id': 'news-module'}).findAll('ul', {'class': 'item-list'}), ('today', 'yesterday', 'past'))
+        }
