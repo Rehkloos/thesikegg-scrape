@@ -15,8 +15,8 @@ spike = Spike()
 def root():
   return render_template('index.html')
 
-
-@app.route("/latest_news")
+@cache.cached(timeout=300)
+@app.route("/latest_news", methods=['GET'])
 def spike_news():
   return current_app.response_class(json.dumps(spike.get_news(), indent=4), mimetype="application/json")
 
